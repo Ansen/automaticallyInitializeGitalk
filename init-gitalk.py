@@ -17,9 +17,9 @@ token = sys.argv[3]
 username = sys.argv[4]
 repo_name = sys.argv[5]
 
-def get_comments(session):
+def get_comments(session, md5_label=''):
     issues = []
-    url = 'https://api.github.com/repos/' + username + '/' + repo_name + '/issues?q=is&labels=Gitalk&sort=created'
+    url = 'https://api.github.com/repos/' + username + '/' + repo_name + '/issues?q=is&labels=Gitalk,' + md5_label
     r = session.get(url=url)
     data = json.loads(r.text)
     for issue in data:
@@ -65,6 +65,11 @@ def init_gitalk(session, not_initialized):
             'body': url,
             'labels': ['Gitalk', gtalk_id]
         }
+        print('[{}] checking...'.format(title))
+        is_existed = get_comments(session=session, md5_label=gtalk_id)
+        if is_existed:
+            print("issues [", gtalk_id,"] already exist")
+            continue
         print('[{}] initializing...'.format(title))
         resp = session.post(url=github_url, data=json.dumps(issue))
         if resp.status_code == 201:
