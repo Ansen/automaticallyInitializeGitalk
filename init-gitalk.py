@@ -32,18 +32,21 @@ def get_posts():
     root = ET.fromstring(r.text)
 
     for child in root:
+        # 只对文章页初始化评论，需要注意确认文章目录名是不是为 post
         if 'post' in child[0].text:
             post_urls.append(child[0].text)
 
     if len(post_urls) > 0:
-         post_urls.remove('https://www.lshell.com/post/')
+        # 移除 post目录
+         post_urls.remove(site_url + '/post/')
     return post_urls
     
 
 def get_post_title(url):
     r = requests.get(url=url)
     soup = BeautifulSoup(r.text, 'html.parser')
-    return soup.title.string.split(' - ')[0]
+    # 我的博客会自动给文章标题加上  - Linux Shell 后缀，需要去掉，当然不去掉也行
+    return soup.title.string.split(' - Linux Shell')[0]
 
 def init_gitalk(session, not_initialized):
     github_url = "https://api.github.com/repos/" + username + "/" + repo_name + "/issues"
@@ -63,6 +66,7 @@ def init_gitalk(session, not_initialized):
             break
 
 def main():
+    # 暂停5分钟，主要是为了等待 vercel 编译新的文章
     print('sleep 300s for waiting hugo build...')
     time.sleep(300)
     session = requests.Session()
