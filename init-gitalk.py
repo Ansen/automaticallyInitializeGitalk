@@ -2,8 +2,10 @@ import requests
 import json
 import time
 import sys
+import hashlib
 import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
+
 
 if len(sys.argv) != 6 :
     print("Usage:")
@@ -50,18 +52,25 @@ def get_post_title(url):
 
 def init_gitalk(session, not_initialized):
     github_url = "https://api.github.com/repos/" + username + "/" + repo_name + "/issues"
+
     for url in not_initialized:
         title = get_post_title(url=url)
+        post_path = url.split(site_url)[-1]
+        # issuse lable 限制最大长度为50，使用md5防止超长导致报错
+        m = hashlib.md5()
+        m.update(post_path.encode('utf-8'))
+        gtalk_id = m.hexdigest()
         issue = {
             'title': title,
             'body': url,
-            'labels': ['Gitalk', url.split(site_url)[-1]]
+            'labels': ['Gitalk', gtalk_id]
         }
         print('[{}] initializing...'.format(title))
         resp = session.post(url=github_url, data=json.dumps(issue))
         if resp.status_code == 201:
             print('Created')
         else:
+            print('issuse: ', issue)
             print('failed: ', resp.text)
             break
 
